@@ -1,4 +1,6 @@
+
+
 document.addEventListener("DOMContentLoaded", e => {
-    console.log('hello')
-    get 
-})
+  console.log("hello");
+
+});
