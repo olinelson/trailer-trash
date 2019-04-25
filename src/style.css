@@ -1,0 +1,17 @@
+body{
+    display: grid;
+}
+
+#heading-container{
+    height: 10vh;
+}
+
+#movies-container {
+    border: 1px solid black;
+    height: 90vh;
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
