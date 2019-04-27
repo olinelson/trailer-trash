@@ -1,14 +1,22 @@
 body{
     display: grid;
+    background-color: black;
+    color: white;
 }
 
 #heading-container{
-    height: 10vh;
+    height: 30vh;
 }
 
 #movies-container {
-    border: 1px solid black;
-    height: 90vh;
+    background-color: black;
+    height: 70vh;
+    display: grid;
+   grid-template-columns: 1fr 1fr 1fr 1fr;
+   justify-items: center;
+   justify-content: center;
+   overflow: scroll;
+
 }
 
 h1 {
@@ -17,5 +25,9 @@ h1 {
 }
 
 .movie-card {
-    border: 1px solid red;
+    display: grid;
+    justify-content: center;
+    justify-items: center;
+    width: 100%;
+    color: white;
 }
