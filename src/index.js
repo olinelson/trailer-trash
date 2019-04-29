@@ -1,119 +1,253 @@
-let movies;
+const url = "http://localhost:3000/api/v1";
 
-let moviesContainer;
+const imagePath = "https://image.tmdb.org/t/p/w185";
 
-let closeFeatureButton;
+let moodIndex;
+let movieScrollIndex;
+let movieIndex;
+let movieShow;
+let allMovies = [];
+let allMoods = [];
+let allVideos = [];
+let searchResults = [];
+let header;
+let specialMovies;
 
-// const BaseUrl = "https://api.themoviedb.org/3";
-const RailsApi = "http://localhost:3000/api/v1";
-const ImagePath = "https://image.tmdb.org/t/p/w185";
+// function apiGetMoods() {
+//   fetch(`${url}/moods`)
+//     .then(r => {
+//       return r.json();
+//     })
+//     .then(r => (allMoods = r))
+//     .then(r => indexMoods(r));
+// }
 
-let displayedMovie = null;
+function apiGetMovies() {
+  fetch(`${url}//search/movies/intheatres`)
+    .then(r => {
+      return r.json();
+    })
+    .then(r => (allMovies = r.results))
+    .then(r => populateIndexAndScroll(r));
+}
 
-const getMoviesInTheatres = () => {
-  fetch(`${RailsApi}/search/movies/intheatres`)
-    .then(r => r.json())
-    .then(r => (movies = r))
-    .then(() => printMovies());
-};
+function populateIndexAndScroll(movies) {
+  indexMovies(movies);
+  indexScrollMovies(movies);
+}
 
-const movieCard = movie => {
-  return `
-    <div class="movie-card" id="movie-card-${movie.id}" data-id=${movie.id}>
-    <img data-id=${movie.id} src="${ImagePath + movie.poster_path}"></img>
-    <h4>${movie.title}</h4>
+function findMovieById(id) {
+  let found = allMovies.find(element => {
+    return element.id == id;
+  });
+  return found;
+}
+
+function findMoodById(id) {
+  let found = allMoods.find(element => {
+    return element.id == id;
+  });
+  return found;
+}
+
+function unique(array, propertyName) {
+  return array.filter(
+    (e, i) => array.findIndex(a => a[propertyName] === e[propertyName]) === i
+  );
+}
+
+function resetMoodIndicators() {
+  allMoodContainers = document.querySelectorAll(".mood-card");
+  allMoodContainers.forEach(function(card) {
+    card.style.borderBottom = "";
+  });
+}
+
+function showMoodSelected(moodContainer) {
+  moodContainer.style.borderBottom = "2px solid white";
+}
+
+function muteVideoToggle() {
+  muteButtonIcon = document.querySelector("#mute-button-icon");
+  if (movieBackgroundVideo.muted) {
+    movieBackgroundVideo.muted = false;
+    muteButtonIcon.className = "fas fa-volume-up";
+  } else {
+    movieBackgroundVideo.muted = true;
+    muteButtonIcon.className = "fas fa-volume-mute";
+  }
+}
+
+// function indexMoods(moods) {
+//   for (let mood of moods) {
+//     moodIndex.innerHTML += `
+//     <div data-id="${mood.id}" id="mood-card-${mood.id}" class="mood-card">
+//       <i data-id="${mood.id}" class="${mood.image} mood-card-icon hvr-grow"></i>
+//       <h4 class="mood-name" data-id="${mood.id}">${mood.name}</h4>
+//     </div>
+
+//     `;
+//   }
+// }
+
+function indexScrollMovies(movies) {
+  for (let movie of movies) {
+    movieScrollIndex.innerHTML += `
+    <div data-id="${movie.id}" id="movie-card-${
+      movie.id
+    }" class="index-movie-card">
+      <img data-id="${movie.id}" class="movie-scroll-image hvr-grow"
+     src="${imagePath + movie.poster_path}"
+    }" alt="">
+      <h4 class="movie-title" data-id="${movie.id}">${movie.title}</h4>
     </div>
     `;
-};
+  }
+}
 
-const printMovies = () => {
-  document.querySelector("#movies-container").innerHTML = movies.results
-    .map(m => movieCard(m))
-    .join("");
-};
+function indexMovies(movies) {
+  movieScrollIndex.style.display = "none";
+  movieShow.innerHTML = "";
+  movieIndex.innerHTML = "";
 
-const getMovieInfo = id => {
-  fetch(`${RailsApi}/search/movies/${id}`).then(r => r.json());
-};
+  // let uniqMovies = unique(movies, "title");
+
+  movies.map(movie => {
+    console.log(movie);
+    movieIndex.innerHTML += `
+    <div data-id="${movie.id}" id="movie-card-${movie.id}" class="movie-card">
+       <img data-id="${
+         movie.id
+       }" class="movie-image hvr-grow"  src="${imagePath +
+      movie.poster_path}" alt="">
+        <h4 class="movie-title" data-id="${movie.id}">${movie.title}</h4>
+      </div>
+    `;
+  });
+}
+
+function showMovie(movieId) {
+  movieIndex.innerHTML = "";
+  movieScrollIndex.style.display = "flex";
+  moodIndex.style.display = "none";
+  movieBackground.style.display = "none";
+  movie = findMovieById(movieId);
+
+  getVideos(movieId);
+
+  window.scrollTo(0, 0);
+
+  movieShow.innerHTML = `
+    <div class = "movie-show-image">
+    <img  src="${imagePath + movie.poster_path}" alt="">
+    </div>
+    <div class="movie-show-info">
+    <h4>${movie.title}</h4>
+    <p>${movie.overview}</p>
+  
+    <div id="movie_videos_index_${movie.id}"></div>
+    </div>
+
+  `;
+  videosIndex = document.querySelector(`#movie_videos_index_${movie.id}`);
+  generateVideosList(movie.videos, videosIndex);
+}
 
 const getVideos = id => {
-  fetch(`${RailsApi}/search/videos/${id}`)
+  fetch(`${url}/search/videos/${id}`)
     .then(r => r.json())
     // .then(r => console.log(r.results[0].key));
     .then(
       r =>
-        `<iframe class="trailer-iframe" src="https://www.youtube.com/embed/${
-          r.results[0].key
-        }" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
-    );
-};
-
-document.addEventListener("DOMContentLoaded", e => {
-  console.log("page has loaded");
-
-  moviesContainer = document.querySelector("#movies-container");
-  getMoviesInTheatres();
-});
-
-document.querySelector("#movies-container").addEventListener("click", e => {
-  // console.log("hello", e.target.dataset.id);
-  movieId = e.target.dataset.id;
-  // getMovieInfo(movieId);
-  expandMovie(movieId);
-});
-
-const featuredContainer = document.querySelector("#featured-container");
-
-const showHideFeatureContainer = () => {
-  if (displayedMovie != null) {
-    featuredContainer.style.display = "block";
-    console.log(ImagePath + displayedMovie.poster_path);
-    featuredContainer.innerHTML = `
-   <img src="${ImagePath + displayedMovie.poster_path}"/>
-   <h4>${displayedMovie.original_title}</h4>
-   <p>${displayedMovie.overview}</p>
-  `;
-  } else {
-    console.log("nothing here");
-  }
-};
-
-const expandMovie = movieId => {
-  id = `#movie-card-${movieId}`;
-  let card = document.querySelector(id);
-
-  card.className = "movie-card featured";
-
-  fetch(`${RailsApi}/search/movies/${movieId}`)
-    .then(r => r.json())
-    .then(
-      r =>
-        (card.innerHTML += `
-      <p>${r.overview}<p/>
-      `)
-    );
-  fetch(`${RailsApi}/search/videos/${movieId}`)
-    .then(r => r.json())
-
-    .then(
-      r =>
-        (card.innerHTML += `
-        <button data-id="${movieId}" class="close-featured-button"> X </button>
-        <div class="iframe-wrapper">
+        (movieShow.innerHTML += `
+        <div class="trailer-iframe-container">
         <iframe class="trailer-iframe" src="https://www.youtube.com/embed/${
           r.results[0].key
         }" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
         `)
-    )
-    .then(
-      closeFeatureButton = document.querySelector(".close-featured-button")
     );
-  
 };
 
+function generateVideosList(videos, destination) {
+  for (let video of videos) {
+    destination.innerHTML += `
 
+     <div class="trailer-iframe-container">
+    <iframe class="trailer-iframe" src="https://www.youtube.com/embed/${
+      video.url_key
+    } " frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
 
-closeFeatureButton.addEventListener("CLICK", e => {
-  console.log(e.dataset.id);
-});
+    `;
+  }
+}
+
+function homePageConfiguration() {
+  movieBackground.style.display = "";
+  movieScrollIndex.style.display = "none";
+  moodIndex.style.display = "flex";
+  movieShow.innerHTML = "";
+  movieIndex.innerHTML = "";
+  indexMovies(allMovies);
+  resetMoodIndicators();
+}
+
+document.addEventListener("DOMContentLoaded", e => {
+  moodIndex = document.querySelector("#mood-index");
+  movieScrollIndex = document.querySelector("#movie-scroll-index");
+  movieIndex = document.querySelector("#movie-index");
+  movieShow = document.querySelector("#movie-show");
+  header = document.querySelector("header");
+
+  // apiGetMoods();
+  apiGetMovies();
+
+  header.addEventListener("click", e => {
+    if (e.target.id === "header-title") {
+      homePageConfiguration();
+    }
+  }); // end of header button
+
+  moodIndex.addEventListener("click", e => {
+    let moodId = e.target.dataset.id;
+
+    let moodButton = document.querySelector(
+      `#mood-card-${e.target.dataset.id}`
+    );
+
+    relevantMovies = findMoodById(moodId).movies;
+
+    indexMovies(relevantMovies);
+    resetMoodIndicators();
+    showMoodSelected(moodButton);
+  }); //end of mood listener
+
+  movieScrollIndex.addEventListener("click", e => {
+    let movieId = e.target.dataset.id;
+
+    showMovie(movieId);
+  }); // end of movie index Listener
+
+  movieIndex.addEventListener("click", e => {
+    let movieId = e.target.dataset.id;
+
+    showMovie(movieId);
+  }); // end of movie index Listener
+
+  document.addEventListener("scroll", e => {
+    pageYPosition = window.pageYOffset;
+
+    if (pageYPosition > 150) {
+      header.style.backgroundColor = "rgba(0, 0, 0, 0.6)";
+    } else {
+      header.style.backgroundColor = "rgba(0, 0, 0, 0)";
+    }
+  }); // end of scroll listener
+
+  document.querySelector("#video-overlay").addEventListener("click", e => {
+    console.log("hello video");
+
+    muteVideoToggle();
+  });
+}); //end of dom content loaded
