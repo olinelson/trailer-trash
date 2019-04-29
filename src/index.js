@@ -1,4 +1,5 @@
-const url = "http://localhost:3000/api/v1";
+// const url = "http://localhost:3000/api/v1";
+const url = "https://trailer-trash-api.herokuapp.com/api/v1";
 
 const imagePath = "https://image.tmdb.org/t/p/w185";
 
